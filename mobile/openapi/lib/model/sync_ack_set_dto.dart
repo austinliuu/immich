@@ -45,6 +45,15 @@ class SyncAckSetDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'acks'), 'Required key "SyncAckSetDto[acks]" is missing from JSON.');
+        assert(json[r'acks'] != null, 'Required key "SyncAckSetDto[acks]" has a null value in JSON.');
+        return true;
+      }());
+
       return SyncAckSetDto(
         acks: json[r'acks'] is Iterable
             ? (json[r'acks'] as Iterable).cast<String>().toList(growable: false)

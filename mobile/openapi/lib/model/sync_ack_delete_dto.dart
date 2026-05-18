@@ -13,11 +13,11 @@ part of openapi.api;
 class SyncAckDeleteDto {
   /// Returns a new [SyncAckDeleteDto] instance.
   SyncAckDeleteDto({
-    this.types = const [],
+    this.types = const Optional.present(const []),
   });
 
   /// Sync entity types to delete acks for
-  List<SyncEntityType> types;
+  Optional<List<SyncEntityType>?> types;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is SyncAckDeleteDto &&
@@ -33,7 +33,10 @@ class SyncAckDeleteDto {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'types'] = this.types;
+    if (this.types.isPresent) {
+      final value = this.types.value;
+      json[r'types'] = value;
+    }
     return json;
   }
 
@@ -45,8 +48,15 @@ class SyncAckDeleteDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        return true;
+      }());
+
       return SyncAckDeleteDto(
-        types: SyncEntityType.listFromJson(json[r'types']),
+        types: json.containsKey(r'types') ? Optional.present(SyncEntityType.listFromJson(json[r'types'])) : const Optional.absent(),
       );
     }
     return null;

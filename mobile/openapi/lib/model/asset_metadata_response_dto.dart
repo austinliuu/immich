@@ -61,6 +61,19 @@ class AssetMetadataResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'key'), 'Required key "AssetMetadataResponseDto[key]" is missing from JSON.');
+        assert(json[r'key'] != null, 'Required key "AssetMetadataResponseDto[key]" has a null value in JSON.');
+        assert(json.containsKey(r'updatedAt'), 'Required key "AssetMetadataResponseDto[updatedAt]" is missing from JSON.');
+        assert(json[r'updatedAt'] != null, 'Required key "AssetMetadataResponseDto[updatedAt]" has a null value in JSON.');
+        assert(json.containsKey(r'value'), 'Required key "AssetMetadataResponseDto[value]" is missing from JSON.');
+        assert(json[r'value'] != null, 'Required key "AssetMetadataResponseDto[value]" has a null value in JSON.');
+        return true;
+      }());
+
       return AssetMetadataResponseDto(
         key: mapValueOfType<String>(json, r'key')!,
         updatedAt: mapDateTime(json, r'updatedAt', r'/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$/')!,

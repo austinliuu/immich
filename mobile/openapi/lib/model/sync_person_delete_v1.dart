@@ -45,6 +45,15 @@ class SyncPersonDeleteV1 {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'personId'), 'Required key "SyncPersonDeleteV1[personId]" is missing from JSON.');
+        assert(json[r'personId'] != null, 'Required key "SyncPersonDeleteV1[personId]" has a null value in JSON.');
+        return true;
+      }());
+
       return SyncPersonDeleteV1(
         personId: mapValueOfType<String>(json, r'personId')!,
       );

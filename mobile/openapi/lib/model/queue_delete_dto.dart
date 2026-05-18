@@ -13,7 +13,7 @@ part of openapi.api;
 class QueueDeleteDto {
   /// Returns a new [QueueDeleteDto] instance.
   QueueDeleteDto({
-    this.failed,
+    this.failed = const Optional.absent(),
   });
 
   /// If true, will also remove failed jobs from the queue.
@@ -23,7 +23,7 @@ class QueueDeleteDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  bool? failed;
+  Optional<bool?> failed;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is QueueDeleteDto &&
@@ -39,10 +39,9 @@ class QueueDeleteDto {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    if (this.failed != null) {
-      json[r'failed'] = this.failed;
-    } else {
-    //  json[r'failed'] = null;
+    if (this.failed.isPresent) {
+      final value = this.failed.value;
+      json[r'failed'] = value;
     }
     return json;
   }
@@ -55,8 +54,15 @@ class QueueDeleteDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        return true;
+      }());
+
       return QueueDeleteDto(
-        failed: mapValueOfType<bool>(json, r'failed'),
+        failed: json.containsKey(r'failed') ? Optional.present(mapValueOfType<bool>(json, r'failed')) : const Optional.absent(),
       );
     }
     return null;

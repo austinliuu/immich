@@ -13,8 +13,8 @@ part of openapi.api;
 class PeopleUpdate {
   /// Returns a new [PeopleUpdate] instance.
   PeopleUpdate({
-    this.enabled,
-    this.sidebarWeb,
+    this.enabled = const Optional.absent(),
+    this.sidebarWeb = const Optional.absent(),
   });
 
   /// Whether people are enabled
@@ -24,7 +24,7 @@ class PeopleUpdate {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  bool? enabled;
+  Optional<bool?> enabled;
 
   /// Whether people appear in web sidebar
   ///
@@ -33,7 +33,7 @@ class PeopleUpdate {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  bool? sidebarWeb;
+  Optional<bool?> sidebarWeb;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is PeopleUpdate &&
@@ -51,15 +51,13 @@ class PeopleUpdate {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    if (this.enabled != null) {
-      json[r'enabled'] = this.enabled;
-    } else {
-    //  json[r'enabled'] = null;
+    if (this.enabled.isPresent) {
+      final value = this.enabled.value;
+      json[r'enabled'] = value;
     }
-    if (this.sidebarWeb != null) {
-      json[r'sidebarWeb'] = this.sidebarWeb;
-    } else {
-    //  json[r'sidebarWeb'] = null;
+    if (this.sidebarWeb.isPresent) {
+      final value = this.sidebarWeb.value;
+      json[r'sidebarWeb'] = value;
     }
     return json;
   }
@@ -72,9 +70,16 @@ class PeopleUpdate {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        return true;
+      }());
+
       return PeopleUpdate(
-        enabled: mapValueOfType<bool>(json, r'enabled'),
-        sidebarWeb: mapValueOfType<bool>(json, r'sidebarWeb'),
+        enabled: json.containsKey(r'enabled') ? Optional.present(mapValueOfType<bool>(json, r'enabled')) : const Optional.absent(),
+        sidebarWeb: json.containsKey(r'sidebarWeb') ? Optional.present(mapValueOfType<bool>(json, r'sidebarWeb')) : const Optional.absent(),
       );
     }
     return null;

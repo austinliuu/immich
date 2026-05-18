@@ -58,6 +58,19 @@ class DuplicateResolveGroupDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'duplicateId'), 'Required key "DuplicateResolveGroupDto[duplicateId]" is missing from JSON.');
+        assert(json[r'duplicateId'] != null, 'Required key "DuplicateResolveGroupDto[duplicateId]" has a null value in JSON.');
+        assert(json.containsKey(r'keepAssetIds'), 'Required key "DuplicateResolveGroupDto[keepAssetIds]" is missing from JSON.');
+        assert(json[r'keepAssetIds'] != null, 'Required key "DuplicateResolveGroupDto[keepAssetIds]" has a null value in JSON.');
+        assert(json.containsKey(r'trashAssetIds'), 'Required key "DuplicateResolveGroupDto[trashAssetIds]" is missing from JSON.');
+        assert(json[r'trashAssetIds'] != null, 'Required key "DuplicateResolveGroupDto[trashAssetIds]" has a null value in JSON.');
+        return true;
+      }());
+
       return DuplicateResolveGroupDto(
         duplicateId: mapValueOfType<String>(json, r'duplicateId')!,
         keepAssetIds: json[r'keepAssetIds'] is Iterable

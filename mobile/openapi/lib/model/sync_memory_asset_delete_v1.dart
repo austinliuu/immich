@@ -52,6 +52,17 @@ class SyncMemoryAssetDeleteV1 {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'assetId'), 'Required key "SyncMemoryAssetDeleteV1[assetId]" is missing from JSON.');
+        assert(json[r'assetId'] != null, 'Required key "SyncMemoryAssetDeleteV1[assetId]" has a null value in JSON.');
+        assert(json.containsKey(r'memoryId'), 'Required key "SyncMemoryAssetDeleteV1[memoryId]" is missing from JSON.');
+        assert(json[r'memoryId'] != null, 'Required key "SyncMemoryAssetDeleteV1[memoryId]" has a null value in JSON.');
+        return true;
+      }());
+
       return SyncMemoryAssetDeleteV1(
         assetId: mapValueOfType<String>(json, r'assetId')!,
         memoryId: mapValueOfType<String>(json, r'memoryId')!,

@@ -58,6 +58,19 @@ class SyncUserMetadataV1 {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'key'), 'Required key "SyncUserMetadataV1[key]" is missing from JSON.');
+        assert(json[r'key'] != null, 'Required key "SyncUserMetadataV1[key]" has a null value in JSON.');
+        assert(json.containsKey(r'userId'), 'Required key "SyncUserMetadataV1[userId]" is missing from JSON.');
+        assert(json[r'userId'] != null, 'Required key "SyncUserMetadataV1[userId]" has a null value in JSON.');
+        assert(json.containsKey(r'value'), 'Required key "SyncUserMetadataV1[value]" is missing from JSON.');
+        assert(json[r'value'] != null, 'Required key "SyncUserMetadataV1[value]" has a null value in JSON.');
+        return true;
+      }());
+
       return SyncUserMetadataV1(
         key: UserMetadataKey.fromJson(json[r'key'])!,
         userId: mapValueOfType<String>(json, r'userId')!,

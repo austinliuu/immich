@@ -45,6 +45,15 @@ class SharedLinkLoginDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'password'), 'Required key "SharedLinkLoginDto[password]" is missing from JSON.');
+        assert(json[r'password'] != null, 'Required key "SharedLinkLoginDto[password]" has a null value in JSON.');
+        return true;
+      }());
+
       return SharedLinkLoginDto(
         password: mapValueOfType<String>(json, r'password')!,
       );

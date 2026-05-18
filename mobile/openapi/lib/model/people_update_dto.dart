@@ -45,6 +45,15 @@ class PeopleUpdateDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'people'), 'Required key "PeopleUpdateDto[people]" is missing from JSON.');
+        assert(json[r'people'] != null, 'Required key "PeopleUpdateDto[people]" has a null value in JSON.');
+        return true;
+      }());
+
       return PeopleUpdateDto(
         people: PeopleUpdateItem.listFromJson(json[r'people']),
       );

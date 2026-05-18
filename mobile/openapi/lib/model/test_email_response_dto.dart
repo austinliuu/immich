@@ -45,6 +45,15 @@ class TestEmailResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'messageId'), 'Required key "TestEmailResponseDto[messageId]" is missing from JSON.');
+        assert(json[r'messageId'] != null, 'Required key "TestEmailResponseDto[messageId]" has a null value in JSON.');
+        return true;
+      }());
+
       return TestEmailResponseDto(
         messageId: mapValueOfType<String>(json, r'messageId')!,
       );

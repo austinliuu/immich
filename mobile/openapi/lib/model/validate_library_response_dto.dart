@@ -13,11 +13,11 @@ part of openapi.api;
 class ValidateLibraryResponseDto {
   /// Returns a new [ValidateLibraryResponseDto] instance.
   ValidateLibraryResponseDto({
-    this.importPaths = const [],
+    this.importPaths = const Optional.present(const []),
   });
 
   /// Validation results for import paths
-  List<ValidateLibraryImportPathResponseDto> importPaths;
+  Optional<List<ValidateLibraryImportPathResponseDto>?> importPaths;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is ValidateLibraryResponseDto &&
@@ -33,7 +33,10 @@ class ValidateLibraryResponseDto {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'importPaths'] = this.importPaths;
+    if (this.importPaths.isPresent) {
+      final value = this.importPaths.value;
+      json[r'importPaths'] = value;
+    }
     return json;
   }
 
@@ -45,8 +48,15 @@ class ValidateLibraryResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        return true;
+      }());
+
       return ValidateLibraryResponseDto(
-        importPaths: ValidateLibraryImportPathResponseDto.listFromJson(json[r'importPaths']),
+        importPaths: json.containsKey(r'importPaths') ? Optional.present(ValidateLibraryImportPathResponseDto.listFromJson(json[r'importPaths'])) : const Optional.absent(),
       );
     }
     return null;

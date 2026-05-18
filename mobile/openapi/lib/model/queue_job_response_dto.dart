@@ -14,7 +14,7 @@ class QueueJobResponseDto {
   /// Returns a new [QueueJobResponseDto] instance.
   QueueJobResponseDto({
     this.data = const {},
-    this.id,
+    this.id = const Optional.absent(),
     required this.name,
     required this.timestamp,
   });
@@ -29,7 +29,7 @@ class QueueJobResponseDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  String? id;
+  Optional<String?> id;
 
   JobName name;
 
@@ -60,10 +60,9 @@ class QueueJobResponseDto {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'data'] = this.data;
-    if (this.id != null) {
-      json[r'id'] = this.id;
-    } else {
-    //  json[r'id'] = null;
+    if (this.id.isPresent) {
+      final value = this.id.value;
+      json[r'id'] = value;
     }
       json[r'name'] = this.name;
       json[r'timestamp'] = this.timestamp;
@@ -78,9 +77,22 @@ class QueueJobResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'data'), 'Required key "QueueJobResponseDto[data]" is missing from JSON.');
+        assert(json[r'data'] != null, 'Required key "QueueJobResponseDto[data]" has a null value in JSON.');
+        assert(json.containsKey(r'name'), 'Required key "QueueJobResponseDto[name]" is missing from JSON.');
+        assert(json[r'name'] != null, 'Required key "QueueJobResponseDto[name]" has a null value in JSON.');
+        assert(json.containsKey(r'timestamp'), 'Required key "QueueJobResponseDto[timestamp]" is missing from JSON.');
+        assert(json[r'timestamp'] != null, 'Required key "QueueJobResponseDto[timestamp]" has a null value in JSON.');
+        return true;
+      }());
+
       return QueueJobResponseDto(
         data: mapCastOfType<String, Object>(json, r'data')!,
-        id: mapValueOfType<String>(json, r'id'),
+        id: json.containsKey(r'id') ? Optional.present(mapValueOfType<String>(json, r'id')) : const Optional.absent(),
         name: JobName.fromJson(json[r'name'])!,
         timestamp: mapValueOfType<int>(json, r'timestamp')!,
       );

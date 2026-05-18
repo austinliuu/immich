@@ -14,7 +14,7 @@ class WorkflowShareStepDto {
   /// Returns a new [WorkflowShareStepDto] instance.
   WorkflowShareStepDto({
     this.config = const {},
-    this.enabled,
+    this.enabled = const Optional.absent(),
     required this.method,
   });
 
@@ -28,7 +28,7 @@ class WorkflowShareStepDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  bool? enabled;
+  Optional<bool?> enabled;
 
   /// Step plugin method
   String method;
@@ -54,12 +54,11 @@ class WorkflowShareStepDto {
     if (this.config != null) {
       json[r'config'] = this.config;
     } else {
-    //  json[r'config'] = null;
+      json[r'config'] = null;
     }
-    if (this.enabled != null) {
-      json[r'enabled'] = this.enabled;
-    } else {
-    //  json[r'enabled'] = null;
+    if (this.enabled.isPresent) {
+      final value = this.enabled.value;
+      json[r'enabled'] = value;
     }
       json[r'method'] = this.method;
     return json;
@@ -73,9 +72,19 @@ class WorkflowShareStepDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'config'), 'Required key "WorkflowShareStepDto[config]" is missing from JSON.');
+        assert(json.containsKey(r'method'), 'Required key "WorkflowShareStepDto[method]" is missing from JSON.');
+        assert(json[r'method'] != null, 'Required key "WorkflowShareStepDto[method]" has a null value in JSON.');
+        return true;
+      }());
+
       return WorkflowShareStepDto(
         config: mapCastOfType<String, Object>(json, r'config'),
-        enabled: mapValueOfType<bool>(json, r'enabled'),
+        enabled: json.containsKey(r'enabled') ? Optional.present(mapValueOfType<bool>(json, r'enabled')) : const Optional.absent(),
         method: mapValueOfType<String>(json, r'method')!,
       );
     }

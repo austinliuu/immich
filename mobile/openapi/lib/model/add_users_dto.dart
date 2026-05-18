@@ -45,6 +45,15 @@ class AddUsersDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'albumUsers'), 'Required key "AddUsersDto[albumUsers]" is missing from JSON.');
+        assert(json[r'albumUsers'] != null, 'Required key "AddUsersDto[albumUsers]" has a null value in JSON.');
+        return true;
+      }());
+
       return AddUsersDto(
         albumUsers: AlbumUserAddDto.listFromJson(json[r'albumUsers']),
       );

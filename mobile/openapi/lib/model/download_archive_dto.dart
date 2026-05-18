@@ -14,7 +14,7 @@ class DownloadArchiveDto {
   /// Returns a new [DownloadArchiveDto] instance.
   DownloadArchiveDto({
     this.assetIds = const [],
-    this.edited,
+    this.edited = const Optional.absent(),
   });
 
   /// Asset IDs
@@ -27,7 +27,7 @@ class DownloadArchiveDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  bool? edited;
+  Optional<bool?> edited;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is DownloadArchiveDto &&
@@ -46,10 +46,9 @@ class DownloadArchiveDto {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'assetIds'] = this.assetIds;
-    if (this.edited != null) {
-      json[r'edited'] = this.edited;
-    } else {
-    //  json[r'edited'] = null;
+    if (this.edited.isPresent) {
+      final value = this.edited.value;
+      json[r'edited'] = value;
     }
     return json;
   }
@@ -62,11 +61,20 @@ class DownloadArchiveDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'assetIds'), 'Required key "DownloadArchiveDto[assetIds]" is missing from JSON.');
+        assert(json[r'assetIds'] != null, 'Required key "DownloadArchiveDto[assetIds]" has a null value in JSON.');
+        return true;
+      }());
+
       return DownloadArchiveDto(
         assetIds: json[r'assetIds'] is Iterable
             ? (json[r'assetIds'] as Iterable).cast<String>().toList(growable: false)
             : const [],
-        edited: mapValueOfType<bool>(json, r'edited'),
+        edited: json.containsKey(r'edited') ? Optional.present(mapValueOfType<bool>(json, r'edited')) : const Optional.absent(),
       );
     }
     return null;

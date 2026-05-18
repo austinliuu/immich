@@ -45,6 +45,15 @@ class SystemConfigPasswordLoginDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'enabled'), 'Required key "SystemConfigPasswordLoginDto[enabled]" is missing from JSON.');
+        assert(json[r'enabled'] != null, 'Required key "SystemConfigPasswordLoginDto[enabled]" has a null value in JSON.');
+        return true;
+      }());
+
       return SystemConfigPasswordLoginDto(
         enabled: mapValueOfType<bool>(json, r'enabled')!,
       );

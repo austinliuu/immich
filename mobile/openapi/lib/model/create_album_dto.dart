@@ -14,19 +14,19 @@ class CreateAlbumDto {
   /// Returns a new [CreateAlbumDto] instance.
   CreateAlbumDto({
     required this.albumName,
-    this.albumUsers = const [],
-    this.assetIds = const [],
-    this.description,
+    this.albumUsers = const Optional.present(const []),
+    this.assetIds = const Optional.present(const []),
+    this.description = const Optional.absent(),
   });
 
   /// Album name
   String albumName;
 
   /// Album users
-  List<AlbumUserCreateDto> albumUsers;
+  Optional<List<AlbumUserCreateDto>?> albumUsers;
 
   /// Initial asset IDs
-  List<String> assetIds;
+  Optional<List<String>?> assetIds;
 
   /// Album description
   ///
@@ -35,7 +35,7 @@ class CreateAlbumDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  String? description;
+  Optional<String?> description;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is CreateAlbumDto &&
@@ -58,12 +58,17 @@ class CreateAlbumDto {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'albumName'] = this.albumName;
-      json[r'albumUsers'] = this.albumUsers;
-      json[r'assetIds'] = this.assetIds;
-    if (this.description != null) {
-      json[r'description'] = this.description;
-    } else {
-    //  json[r'description'] = null;
+    if (this.albumUsers.isPresent) {
+      final value = this.albumUsers.value;
+      json[r'albumUsers'] = value;
+    }
+    if (this.assetIds.isPresent) {
+      final value = this.assetIds.value;
+      json[r'assetIds'] = value;
+    }
+    if (this.description.isPresent) {
+      final value = this.description.value;
+      json[r'description'] = value;
     }
     return json;
   }
@@ -76,13 +81,22 @@ class CreateAlbumDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'albumName'), 'Required key "CreateAlbumDto[albumName]" is missing from JSON.');
+        assert(json[r'albumName'] != null, 'Required key "CreateAlbumDto[albumName]" has a null value in JSON.');
+        return true;
+      }());
+
       return CreateAlbumDto(
         albumName: mapValueOfType<String>(json, r'albumName')!,
-        albumUsers: AlbumUserCreateDto.listFromJson(json[r'albumUsers']),
-        assetIds: json[r'assetIds'] is Iterable
+        albumUsers: json.containsKey(r'albumUsers') ? Optional.present(AlbumUserCreateDto.listFromJson(json[r'albumUsers'])) : const Optional.absent(),
+        assetIds: json.containsKey(r'assetIds') ? Optional.present(json[r'assetIds'] is Iterable
             ? (json[r'assetIds'] as Iterable).cast<String>().toList(growable: false)
-            : const [],
-        description: mapValueOfType<String>(json, r'description'),
+            : const []) : const Optional.absent(),
+        description: json.containsKey(r'description') ? Optional.present(mapValueOfType<String>(json, r'description')) : const Optional.absent(),
       );
     }
     return null;

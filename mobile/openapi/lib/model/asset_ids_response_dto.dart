@@ -14,7 +14,7 @@ class AssetIdsResponseDto {
   /// Returns a new [AssetIdsResponseDto] instance.
   AssetIdsResponseDto({
     required this.assetId,
-    this.error,
+    this.error = const Optional.absent(),
     required this.success,
   });
 
@@ -27,7 +27,7 @@ class AssetIdsResponseDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  AssetIdErrorReason? error;
+  Optional<AssetIdErrorReason?> error;
 
   /// Whether operation succeeded
   bool success;
@@ -51,10 +51,9 @@ class AssetIdsResponseDto {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'assetId'] = this.assetId;
-    if (this.error != null) {
-      json[r'error'] = this.error;
-    } else {
-    //  json[r'error'] = null;
+    if (this.error.isPresent) {
+      final value = this.error.value;
+      json[r'error'] = value;
     }
       json[r'success'] = this.success;
     return json;
@@ -68,9 +67,20 @@ class AssetIdsResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'assetId'), 'Required key "AssetIdsResponseDto[assetId]" is missing from JSON.');
+        assert(json[r'assetId'] != null, 'Required key "AssetIdsResponseDto[assetId]" has a null value in JSON.');
+        assert(json.containsKey(r'success'), 'Required key "AssetIdsResponseDto[success]" is missing from JSON.');
+        assert(json[r'success'] != null, 'Required key "AssetIdsResponseDto[success]" has a null value in JSON.');
+        return true;
+      }());
+
       return AssetIdsResponseDto(
         assetId: mapValueOfType<String>(json, r'assetId')!,
-        error: AssetIdErrorReason.fromJson(json[r'error']),
+        error: json.containsKey(r'error') ? Optional.present(AssetIdErrorReason.fromJson(json[r'error'])) : const Optional.absent(),
         success: mapValueOfType<bool>(json, r'success')!,
       );
     }

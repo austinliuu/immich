@@ -13,7 +13,7 @@ part of openapi.api;
 class SessionUpdateDto {
   /// Returns a new [SessionUpdateDto] instance.
   SessionUpdateDto({
-    this.isPendingSyncReset,
+    this.isPendingSyncReset = const Optional.absent(),
   });
 
   /// Reset pending sync state
@@ -23,7 +23,7 @@ class SessionUpdateDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  bool? isPendingSyncReset;
+  Optional<bool?> isPendingSyncReset;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is SessionUpdateDto &&
@@ -39,10 +39,9 @@ class SessionUpdateDto {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    if (this.isPendingSyncReset != null) {
-      json[r'isPendingSyncReset'] = this.isPendingSyncReset;
-    } else {
-    //  json[r'isPendingSyncReset'] = null;
+    if (this.isPendingSyncReset.isPresent) {
+      final value = this.isPendingSyncReset.value;
+      json[r'isPendingSyncReset'] = value;
     }
     return json;
   }
@@ -55,8 +54,15 @@ class SessionUpdateDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        return true;
+      }());
+
       return SessionUpdateDto(
-        isPendingSyncReset: mapValueOfType<bool>(json, r'isPendingSyncReset'),
+        isPendingSyncReset: json.containsKey(r'isPendingSyncReset') ? Optional.present(mapValueOfType<bool>(json, r'isPendingSyncReset')) : const Optional.absent(),
       );
     }
     return null;

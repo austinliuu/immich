@@ -59,6 +59,19 @@ class SystemConfigMapDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'darkStyle'), 'Required key "SystemConfigMapDto[darkStyle]" is missing from JSON.');
+        assert(json[r'darkStyle'] != null, 'Required key "SystemConfigMapDto[darkStyle]" has a null value in JSON.');
+        assert(json.containsKey(r'enabled'), 'Required key "SystemConfigMapDto[enabled]" is missing from JSON.');
+        assert(json[r'enabled'] != null, 'Required key "SystemConfigMapDto[enabled]" has a null value in JSON.');
+        assert(json.containsKey(r'lightStyle'), 'Required key "SystemConfigMapDto[lightStyle]" is missing from JSON.');
+        assert(json[r'lightStyle'] != null, 'Required key "SystemConfigMapDto[lightStyle]" has a null value in JSON.');
+        return true;
+      }());
+
       return SystemConfigMapDto(
         darkStyle: mapValueOfType<String>(json, r'darkStyle')!,
         enabled: mapValueOfType<bool>(json, r'enabled')!,

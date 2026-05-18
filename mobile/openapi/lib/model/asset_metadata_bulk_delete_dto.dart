@@ -45,6 +45,15 @@ class AssetMetadataBulkDeleteDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'items'), 'Required key "AssetMetadataBulkDeleteDto[items]" is missing from JSON.');
+        assert(json[r'items'] != null, 'Required key "AssetMetadataBulkDeleteDto[items]" has a null value in JSON.');
+        return true;
+      }());
+
       return AssetMetadataBulkDeleteDto(
         items: AssetMetadataBulkDeleteItemDto.listFromJson(json[r'items']),
       );

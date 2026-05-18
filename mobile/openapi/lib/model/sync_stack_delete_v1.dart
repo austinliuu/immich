@@ -45,6 +45,15 @@ class SyncStackDeleteV1 {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'stackId'), 'Required key "SyncStackDeleteV1[stackId]" is missing from JSON.');
+        assert(json[r'stackId'] != null, 'Required key "SyncStackDeleteV1[stackId]" has a null value in JSON.');
+        return true;
+      }());
+
       return SyncStackDeleteV1(
         stackId: mapValueOfType<String>(json, r'stackId')!,
       );

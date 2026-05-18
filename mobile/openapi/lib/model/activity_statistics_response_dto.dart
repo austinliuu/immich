@@ -58,6 +58,17 @@ class ActivityStatisticsResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'comments'), 'Required key "ActivityStatisticsResponseDto[comments]" is missing from JSON.');
+        assert(json[r'comments'] != null, 'Required key "ActivityStatisticsResponseDto[comments]" has a null value in JSON.');
+        assert(json.containsKey(r'likes'), 'Required key "ActivityStatisticsResponseDto[likes]" is missing from JSON.');
+        assert(json[r'likes'] != null, 'Required key "ActivityStatisticsResponseDto[likes]" has a null value in JSON.');
+        return true;
+      }());
+
       return ActivityStatisticsResponseDto(
         comments: mapValueOfType<int>(json, r'comments')!,
         likes: mapValueOfType<int>(json, r'likes')!,

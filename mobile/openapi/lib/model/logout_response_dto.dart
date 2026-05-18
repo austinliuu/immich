@@ -52,6 +52,17 @@ class LogoutResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'redirectUri'), 'Required key "LogoutResponseDto[redirectUri]" is missing from JSON.');
+        assert(json[r'redirectUri'] != null, 'Required key "LogoutResponseDto[redirectUri]" has a null value in JSON.');
+        assert(json.containsKey(r'successful'), 'Required key "LogoutResponseDto[successful]" is missing from JSON.');
+        assert(json[r'successful'] != null, 'Required key "LogoutResponseDto[successful]" has a null value in JSON.');
+        return true;
+      }());
+
       return LogoutResponseDto(
         redirectUri: mapValueOfType<String>(json, r'redirectUri')!,
         successful: mapValueOfType<bool>(json, r'successful')!,

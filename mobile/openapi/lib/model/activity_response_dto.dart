@@ -14,7 +14,7 @@ class ActivityResponseDto {
   /// Returns a new [ActivityResponseDto] instance.
   ActivityResponseDto({
     required this.assetId,
-    this.comment,
+    this.comment = const Optional.absent(),
     required this.createdAt,
     required this.id,
     required this.type,
@@ -25,7 +25,7 @@ class ActivityResponseDto {
   String? assetId;
 
   /// Comment text (for comment activities)
-  String? comment;
+  Optional<String?> comment;
 
   /// Creation date
   DateTime createdAt;
@@ -64,12 +64,11 @@ class ActivityResponseDto {
     if (this.assetId != null) {
       json[r'assetId'] = this.assetId;
     } else {
-    //  json[r'assetId'] = null;
+      json[r'assetId'] = null;
     }
-    if (this.comment != null) {
-      json[r'comment'] = this.comment;
-    } else {
-    //  json[r'comment'] = null;
+    if (this.comment.isPresent) {
+      final value = this.comment.value;
+      json[r'comment'] = value;
     }
       json[r'createdAt'] = _isEpochMarker(r'/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$/')
         ? this.createdAt.millisecondsSinceEpoch
@@ -88,9 +87,25 @@ class ActivityResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'assetId'), 'Required key "ActivityResponseDto[assetId]" is missing from JSON.');
+        assert(json.containsKey(r'createdAt'), 'Required key "ActivityResponseDto[createdAt]" is missing from JSON.');
+        assert(json[r'createdAt'] != null, 'Required key "ActivityResponseDto[createdAt]" has a null value in JSON.');
+        assert(json.containsKey(r'id'), 'Required key "ActivityResponseDto[id]" is missing from JSON.');
+        assert(json[r'id'] != null, 'Required key "ActivityResponseDto[id]" has a null value in JSON.');
+        assert(json.containsKey(r'type'), 'Required key "ActivityResponseDto[type]" is missing from JSON.');
+        assert(json[r'type'] != null, 'Required key "ActivityResponseDto[type]" has a null value in JSON.');
+        assert(json.containsKey(r'user'), 'Required key "ActivityResponseDto[user]" is missing from JSON.');
+        assert(json[r'user'] != null, 'Required key "ActivityResponseDto[user]" has a null value in JSON.');
+        return true;
+      }());
+
       return ActivityResponseDto(
         assetId: mapValueOfType<String>(json, r'assetId'),
-        comment: mapValueOfType<String>(json, r'comment'),
+        comment: json.containsKey(r'comment') ? Optional.present(mapValueOfType<String>(json, r'comment')) : const Optional.absent(),
         createdAt: mapDateTime(json, r'createdAt', r'/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$/')!,
         id: mapValueOfType<String>(json, r'id')!,
         type: ReactionType.fromJson(json[r'type'])!,

@@ -17,7 +17,7 @@ class PluginMethodResponseDto {
     required this.hostFunctions,
     required this.key,
     required this.name,
-    this.schema,
+    this.schema = const Optional.absent(),
     required this.title,
     this.types = const [],
     this.uiHints = const [],
@@ -40,7 +40,7 @@ class PluginMethodResponseDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  Object? schema;
+  Optional<Object?> schema;
 
   /// Title
   String title;
@@ -83,10 +83,9 @@ class PluginMethodResponseDto {
       json[r'hostFunctions'] = this.hostFunctions;
       json[r'key'] = this.key;
       json[r'name'] = this.name;
-    if (this.schema != null) {
-      json[r'schema'] = this.schema;
-    } else {
-    //  json[r'schema'] = null;
+    if (this.schema.isPresent) {
+      final value = this.schema.value;
+      json[r'schema'] = value;
     }
       json[r'title'] = this.title;
       json[r'types'] = this.types;
@@ -102,12 +101,33 @@ class PluginMethodResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'description'), 'Required key "PluginMethodResponseDto[description]" is missing from JSON.');
+        assert(json[r'description'] != null, 'Required key "PluginMethodResponseDto[description]" has a null value in JSON.');
+        assert(json.containsKey(r'hostFunctions'), 'Required key "PluginMethodResponseDto[hostFunctions]" is missing from JSON.');
+        assert(json[r'hostFunctions'] != null, 'Required key "PluginMethodResponseDto[hostFunctions]" has a null value in JSON.');
+        assert(json.containsKey(r'key'), 'Required key "PluginMethodResponseDto[key]" is missing from JSON.');
+        assert(json[r'key'] != null, 'Required key "PluginMethodResponseDto[key]" has a null value in JSON.');
+        assert(json.containsKey(r'name'), 'Required key "PluginMethodResponseDto[name]" is missing from JSON.');
+        assert(json[r'name'] != null, 'Required key "PluginMethodResponseDto[name]" has a null value in JSON.');
+        assert(json.containsKey(r'title'), 'Required key "PluginMethodResponseDto[title]" is missing from JSON.');
+        assert(json[r'title'] != null, 'Required key "PluginMethodResponseDto[title]" has a null value in JSON.');
+        assert(json.containsKey(r'types'), 'Required key "PluginMethodResponseDto[types]" is missing from JSON.');
+        assert(json[r'types'] != null, 'Required key "PluginMethodResponseDto[types]" has a null value in JSON.');
+        assert(json.containsKey(r'uiHints'), 'Required key "PluginMethodResponseDto[uiHints]" is missing from JSON.');
+        assert(json[r'uiHints'] != null, 'Required key "PluginMethodResponseDto[uiHints]" has a null value in JSON.');
+        return true;
+      }());
+
       return PluginMethodResponseDto(
         description: mapValueOfType<String>(json, r'description')!,
         hostFunctions: mapValueOfType<bool>(json, r'hostFunctions')!,
         key: mapValueOfType<String>(json, r'key')!,
         name: mapValueOfType<String>(json, r'name')!,
-        schema: mapValueOfType<Object>(json, r'schema'),
+        schema: json.containsKey(r'schema') ? Optional.present(mapValueOfType<Object>(json, r'schema')) : const Optional.absent(),
         title: mapValueOfType<String>(json, r'title')!,
         types: WorkflowType.listFromJson(json[r'types']),
         uiHints: json[r'uiHints'] is Iterable

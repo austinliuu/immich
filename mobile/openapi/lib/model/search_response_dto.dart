@@ -50,6 +50,17 @@ class SearchResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'albums'), 'Required key "SearchResponseDto[albums]" is missing from JSON.');
+        assert(json[r'albums'] != null, 'Required key "SearchResponseDto[albums]" has a null value in JSON.');
+        assert(json.containsKey(r'assets'), 'Required key "SearchResponseDto[assets]" is missing from JSON.');
+        assert(json[r'assets'] != null, 'Required key "SearchResponseDto[assets]" has a null value in JSON.');
+        return true;
+      }());
+
       return SearchResponseDto(
         albums: SearchAlbumResponseDto.fromJson(json[r'albums'])!,
         assets: SearchAssetResponseDto.fromJson(json[r'assets'])!,

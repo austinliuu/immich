@@ -13,7 +13,7 @@ part of openapi.api;
 class MaintenanceLoginDto {
   /// Returns a new [MaintenanceLoginDto] instance.
   MaintenanceLoginDto({
-    this.token,
+    this.token = const Optional.absent(),
   });
 
   /// Maintenance token
@@ -23,7 +23,7 @@ class MaintenanceLoginDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  String? token;
+  Optional<String?> token;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is MaintenanceLoginDto &&
@@ -39,10 +39,9 @@ class MaintenanceLoginDto {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    if (this.token != null) {
-      json[r'token'] = this.token;
-    } else {
-    //  json[r'token'] = null;
+    if (this.token.isPresent) {
+      final value = this.token.value;
+      json[r'token'] = value;
     }
     return json;
   }
@@ -55,8 +54,15 @@ class MaintenanceLoginDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        return true;
+      }());
+
       return MaintenanceLoginDto(
-        token: mapValueOfType<String>(json, r'token'),
+        token: json.containsKey(r'token') ? Optional.present(mapValueOfType<String>(json, r'token')) : const Optional.absent(),
       );
     }
     return null;

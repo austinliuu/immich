@@ -55,6 +55,17 @@ class DownloadResponse {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'archiveSize'), 'Required key "DownloadResponse[archiveSize]" is missing from JSON.');
+        assert(json[r'archiveSize'] != null, 'Required key "DownloadResponse[archiveSize]" has a null value in JSON.');
+        assert(json.containsKey(r'includeEmbeddedVideos'), 'Required key "DownloadResponse[includeEmbeddedVideos]" is missing from JSON.');
+        assert(json[r'includeEmbeddedVideos'] != null, 'Required key "DownloadResponse[includeEmbeddedVideos]" has a null value in JSON.');
+        return true;
+      }());
+
       return DownloadResponse(
         archiveSize: mapValueOfType<int>(json, r'archiveSize')!,
         includeEmbeddedVideos: mapValueOfType<bool>(json, r'includeEmbeddedVideos')!,

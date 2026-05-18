@@ -65,6 +65,21 @@ class SystemConfigSmtpDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'enabled'), 'Required key "SystemConfigSmtpDto[enabled]" is missing from JSON.');
+        assert(json[r'enabled'] != null, 'Required key "SystemConfigSmtpDto[enabled]" has a null value in JSON.');
+        assert(json.containsKey(r'from'), 'Required key "SystemConfigSmtpDto[from]" is missing from JSON.');
+        assert(json[r'from'] != null, 'Required key "SystemConfigSmtpDto[from]" has a null value in JSON.');
+        assert(json.containsKey(r'replyTo'), 'Required key "SystemConfigSmtpDto[replyTo]" is missing from JSON.');
+        assert(json[r'replyTo'] != null, 'Required key "SystemConfigSmtpDto[replyTo]" has a null value in JSON.');
+        assert(json.containsKey(r'transport'), 'Required key "SystemConfigSmtpDto[transport]" is missing from JSON.');
+        assert(json[r'transport'] != null, 'Required key "SystemConfigSmtpDto[transport]" has a null value in JSON.');
+        return true;
+      }());
+
       return SystemConfigSmtpDto(
         enabled: mapValueOfType<bool>(json, r'enabled')!,
         from: mapValueOfType<String>(json, r'from')!,

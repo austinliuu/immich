@@ -18,7 +18,7 @@ class SessionResponseDto {
     required this.current,
     required this.deviceOS,
     required this.deviceType,
-    this.expiresAt,
+    this.expiresAt = const Optional.absent(),
     required this.id,
     required this.isPendingSyncReset,
     required this.updatedAt,
@@ -46,7 +46,7 @@ class SessionResponseDto {
   /// source code must fall back to having a nullable type.
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
-  String? expiresAt;
+  Optional<String?> expiresAt;
 
   /// Session ID
   String id;
@@ -90,16 +90,15 @@ class SessionResponseDto {
     if (this.appVersion != null) {
       json[r'appVersion'] = this.appVersion;
     } else {
-    //  json[r'appVersion'] = null;
+      json[r'appVersion'] = null;
     }
       json[r'createdAt'] = this.createdAt;
       json[r'current'] = this.current;
       json[r'deviceOS'] = this.deviceOS;
       json[r'deviceType'] = this.deviceType;
-    if (this.expiresAt != null) {
-      json[r'expiresAt'] = this.expiresAt;
-    } else {
-    //  json[r'expiresAt'] = null;
+    if (this.expiresAt.isPresent) {
+      final value = this.expiresAt.value;
+      json[r'expiresAt'] = value;
     }
       json[r'id'] = this.id;
       json[r'isPendingSyncReset'] = this.isPendingSyncReset;
@@ -115,13 +114,35 @@ class SessionResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'appVersion'), 'Required key "SessionResponseDto[appVersion]" is missing from JSON.');
+        assert(json.containsKey(r'createdAt'), 'Required key "SessionResponseDto[createdAt]" is missing from JSON.');
+        assert(json[r'createdAt'] != null, 'Required key "SessionResponseDto[createdAt]" has a null value in JSON.');
+        assert(json.containsKey(r'current'), 'Required key "SessionResponseDto[current]" is missing from JSON.');
+        assert(json[r'current'] != null, 'Required key "SessionResponseDto[current]" has a null value in JSON.');
+        assert(json.containsKey(r'deviceOS'), 'Required key "SessionResponseDto[deviceOS]" is missing from JSON.');
+        assert(json[r'deviceOS'] != null, 'Required key "SessionResponseDto[deviceOS]" has a null value in JSON.');
+        assert(json.containsKey(r'deviceType'), 'Required key "SessionResponseDto[deviceType]" is missing from JSON.');
+        assert(json[r'deviceType'] != null, 'Required key "SessionResponseDto[deviceType]" has a null value in JSON.');
+        assert(json.containsKey(r'id'), 'Required key "SessionResponseDto[id]" is missing from JSON.');
+        assert(json[r'id'] != null, 'Required key "SessionResponseDto[id]" has a null value in JSON.');
+        assert(json.containsKey(r'isPendingSyncReset'), 'Required key "SessionResponseDto[isPendingSyncReset]" is missing from JSON.');
+        assert(json[r'isPendingSyncReset'] != null, 'Required key "SessionResponseDto[isPendingSyncReset]" has a null value in JSON.');
+        assert(json.containsKey(r'updatedAt'), 'Required key "SessionResponseDto[updatedAt]" is missing from JSON.');
+        assert(json[r'updatedAt'] != null, 'Required key "SessionResponseDto[updatedAt]" has a null value in JSON.');
+        return true;
+      }());
+
       return SessionResponseDto(
         appVersion: mapValueOfType<String>(json, r'appVersion'),
         createdAt: mapValueOfType<String>(json, r'createdAt')!,
         current: mapValueOfType<bool>(json, r'current')!,
         deviceOS: mapValueOfType<String>(json, r'deviceOS')!,
         deviceType: mapValueOfType<String>(json, r'deviceType')!,
-        expiresAt: mapValueOfType<String>(json, r'expiresAt'),
+        expiresAt: json.containsKey(r'expiresAt') ? Optional.present(mapValueOfType<String>(json, r'expiresAt')) : const Optional.absent(),
         id: mapValueOfType<String>(json, r'id')!,
         isPendingSyncReset: mapValueOfType<bool>(json, r'isPendingSyncReset')!,
         updatedAt: mapValueOfType<String>(json, r'updatedAt')!,

@@ -44,6 +44,15 @@ class JobCreateDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'name'), 'Required key "JobCreateDto[name]" is missing from JSON.');
+        assert(json[r'name'] != null, 'Required key "JobCreateDto[name]" has a null value in JSON.');
+        return true;
+      }());
+
       return JobCreateDto(
         name: ManualJobName.fromJson(json[r'name'])!,
       );

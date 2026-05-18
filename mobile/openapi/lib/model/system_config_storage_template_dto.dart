@@ -59,6 +59,19 @@ class SystemConfigStorageTemplateDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'enabled'), 'Required key "SystemConfigStorageTemplateDto[enabled]" is missing from JSON.');
+        assert(json[r'enabled'] != null, 'Required key "SystemConfigStorageTemplateDto[enabled]" has a null value in JSON.');
+        assert(json.containsKey(r'hashVerificationEnabled'), 'Required key "SystemConfigStorageTemplateDto[hashVerificationEnabled]" is missing from JSON.');
+        assert(json[r'hashVerificationEnabled'] != null, 'Required key "SystemConfigStorageTemplateDto[hashVerificationEnabled]" has a null value in JSON.');
+        assert(json.containsKey(r'template'), 'Required key "SystemConfigStorageTemplateDto[template]" is missing from JSON.');
+        assert(json[r'template'] != null, 'Required key "SystemConfigStorageTemplateDto[template]" has a null value in JSON.');
+        return true;
+      }());
+
       return SystemConfigStorageTemplateDto(
         enabled: mapValueOfType<bool>(json, r'enabled')!,
         hashVerificationEnabled: mapValueOfType<bool>(json, r'hashVerificationEnabled')!,

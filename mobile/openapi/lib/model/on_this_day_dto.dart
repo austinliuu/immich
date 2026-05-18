@@ -48,6 +48,15 @@ class OnThisDayDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'year'), 'Required key "OnThisDayDto[year]" is missing from JSON.');
+        assert(json[r'year'] != null, 'Required key "OnThisDayDto[year]" has a null value in JSON.');
+        return true;
+      }());
+
       return OnThisDayDto(
         year: mapValueOfType<int>(json, r'year')!,
       );

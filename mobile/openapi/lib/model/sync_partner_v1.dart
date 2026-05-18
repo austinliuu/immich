@@ -59,6 +59,19 @@ class SyncPartnerV1 {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'inTimeline'), 'Required key "SyncPartnerV1[inTimeline]" is missing from JSON.');
+        assert(json[r'inTimeline'] != null, 'Required key "SyncPartnerV1[inTimeline]" has a null value in JSON.');
+        assert(json.containsKey(r'sharedById'), 'Required key "SyncPartnerV1[sharedById]" is missing from JSON.');
+        assert(json[r'sharedById'] != null, 'Required key "SyncPartnerV1[sharedById]" has a null value in JSON.');
+        assert(json.containsKey(r'sharedWithId'), 'Required key "SyncPartnerV1[sharedWithId]" is missing from JSON.');
+        assert(json[r'sharedWithId'] != null, 'Required key "SyncPartnerV1[sharedWithId]" has a null value in JSON.');
+        return true;
+      }());
+
       return SyncPartnerV1(
         inTimeline: mapValueOfType<bool>(json, r'inTimeline')!,
         sharedById: mapValueOfType<String>(json, r'sharedById')!,

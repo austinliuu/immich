@@ -55,6 +55,17 @@ class ContributorCountResponseDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'assetCount'), 'Required key "ContributorCountResponseDto[assetCount]" is missing from JSON.');
+        assert(json[r'assetCount'] != null, 'Required key "ContributorCountResponseDto[assetCount]" has a null value in JSON.');
+        assert(json.containsKey(r'userId'), 'Required key "ContributorCountResponseDto[userId]" is missing from JSON.');
+        assert(json[r'userId'] != null, 'Required key "ContributorCountResponseDto[userId]" has a null value in JSON.');
+        return true;
+      }());
+
       return ContributorCountResponseDto(
         assetCount: mapValueOfType<int>(json, r'assetCount')!,
         userId: mapValueOfType<String>(json, r'userId')!,

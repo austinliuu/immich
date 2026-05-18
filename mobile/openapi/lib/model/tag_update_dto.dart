@@ -13,11 +13,11 @@ part of openapi.api;
 class TagUpdateDto {
   /// Returns a new [TagUpdateDto] instance.
   TagUpdateDto({
-    this.color,
+    this.color = const Optional.absent(),
   });
 
   /// Tag color (hex)
-  String? color;
+  Optional<String?> color;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is TagUpdateDto &&
@@ -33,10 +33,9 @@ class TagUpdateDto {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    if (this.color != null) {
-      json[r'color'] = this.color;
-    } else {
-    //  json[r'color'] = null;
+    if (this.color.isPresent) {
+      final value = this.color.value;
+      json[r'color'] = value;
     }
     return json;
   }
@@ -49,8 +48,15 @@ class TagUpdateDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        return true;
+      }());
+
       return TagUpdateDto(
-        color: mapValueOfType<String>(json, r'color'),
+        color: json.containsKey(r'color') ? Optional.present(mapValueOfType<String>(json, r'color')) : const Optional.absent(),
       );
     }
     return null;

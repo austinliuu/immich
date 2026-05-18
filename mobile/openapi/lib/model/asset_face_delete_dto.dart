@@ -45,6 +45,15 @@ class AssetFaceDeleteDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'force'), 'Required key "AssetFaceDeleteDto[force]" is missing from JSON.');
+        assert(json[r'force'] != null, 'Required key "AssetFaceDeleteDto[force]" has a null value in JSON.');
+        return true;
+      }());
+
       return AssetFaceDeleteDto(
         force: mapValueOfType<bool>(json, r'force')!,
       );

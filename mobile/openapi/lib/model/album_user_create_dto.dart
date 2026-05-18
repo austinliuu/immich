@@ -51,6 +51,17 @@ class AlbumUserCreateDto {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'role'), 'Required key "AlbumUserCreateDto[role]" is missing from JSON.');
+        assert(json[r'role'] != null, 'Required key "AlbumUserCreateDto[role]" has a null value in JSON.');
+        assert(json.containsKey(r'userId'), 'Required key "AlbumUserCreateDto[userId]" is missing from JSON.');
+        assert(json[r'userId'] != null, 'Required key "AlbumUserCreateDto[userId]" has a null value in JSON.');
+        return true;
+      }());
+
       return AlbumUserCreateDto(
         role: AlbumUserRole.fromJson(json[r'role'])!,
         userId: mapValueOfType<String>(json, r'userId')!,

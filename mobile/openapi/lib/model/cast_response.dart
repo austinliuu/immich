@@ -45,6 +45,15 @@ class CastResponse {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        assert(json.containsKey(r'gCastEnabled'), 'Required key "CastResponse[gCastEnabled]" is missing from JSON.');
+        assert(json[r'gCastEnabled'] != null, 'Required key "CastResponse[gCastEnabled]" has a null value in JSON.');
+        return true;
+      }());
+
       return CastResponse(
         gCastEnabled: mapValueOfType<bool>(json, r'gCastEnabled')!,
       );
