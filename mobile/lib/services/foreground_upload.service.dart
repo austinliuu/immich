@@ -451,7 +451,7 @@ class ForegroundUploadService {
   }
 
   bool _shouldRequireWiFi(LocalAsset asset) {
-    final backup = MetadataRepository.instance.appConfig.backup;
+    final backup = MetadataStore.appConfig.backup;
     if (asset.isVideo && backup.useCellularForVideos) {
       return false;
     }

@@ -20,16 +20,27 @@ class AppConfig {
   final BackupConfig backup;
 
   const AppConfig({
-    this.theme = const .new(),
-    this.cleanup = const .new(),
-    this.map = const .new(),
-    this.timeline = const .new(),
-    this.image = const .new(),
-    this.viewer = const .new(),
-    this.slideshow = const .new(),
-    this.album = const .new(),
-    this.backup = const .new(),
+    required this.theme,
+    required this.cleanup,
+    required this.map,
+    required this.timeline,
+    required this.image,
+    required this.viewer,
+    required this.slideshow,
+    required this.album,
+    required this.backup,
   });
+
+  AppConfig.defaults()
+    : theme = .defaults(),
+      cleanup = .defaults(),
+      map = .defaults(),
+      timeline = .defaults(),
+      image = .defaults(),
+      viewer = .defaults(),
+      slideshow = .defaults(),
+      album = .defaults(),
+      backup = .defaults();
 
   AppConfig copyWith({
     ThemeConfig? theme,

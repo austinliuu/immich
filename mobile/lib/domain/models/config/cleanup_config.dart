@@ -1,4 +1,5 @@
 import 'package:immich_mobile/constants/enums.dart';
+import 'package:immich_mobile/domain/models/metadata_key.dart';
 
 class CleanupConfig {
   final bool keepFavorites;
@@ -8,12 +9,19 @@ class CleanupConfig {
   final bool defaultsInitialized;
 
   const CleanupConfig({
-    this.keepFavorites = true,
-    this.keepMediaType = AssetKeepType.none,
-    this.keepAlbumIds = const [],
-    this.cutoffDaysAgo = -1,
-    this.defaultsInitialized = false,
+    required this.keepFavorites,
+    required this.keepMediaType,
+    required this.keepAlbumIds,
+    required this.cutoffDaysAgo,
+    required this.defaultsInitialized,
   });
+
+  CleanupConfig.defaults()
+    : keepFavorites = MetadataKey.cleanupKeepFavorites.defaultValue,
+      keepMediaType = MetadataKey.cleanupKeepMediaType.defaultValue,
+      keepAlbumIds = MetadataKey.cleanupKeepAlbumIds.defaultValue,
+      cutoffDaysAgo = MetadataKey.cleanupCutoffDaysAgo.defaultValue,
+      defaultsInitialized = MetadataKey.cleanupDefaultsInitialized.defaultValue;
 
   CleanupConfig copyWith({
     bool? keepFavorites,

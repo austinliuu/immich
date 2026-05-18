@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:immich_mobile/domain/models/metadata_key.dart';
 
 class NetworkConfig {
   final bool autoEndpointSwitching;
@@ -8,12 +9,19 @@ class NetworkConfig {
   final Map<String, String> customHeaders;
 
   const NetworkConfig({
-    this.autoEndpointSwitching = false,
+    required this.autoEndpointSwitching,
     this.preferredWifiName,
     this.localEndpoint,
-    this.externalEndpointList = const [],
-    this.customHeaders = const {},
+    required this.externalEndpointList,
+    required this.customHeaders,
   });
+
+  NetworkConfig.defaults()
+    : autoEndpointSwitching = MetadataKey.networkAutoEndpointSwitching.defaultValue,
+      preferredWifiName = MetadataKey.networkPreferredWifiName.defaultValue,
+      localEndpoint = MetadataKey.networkLocalEndpoint.defaultValue,
+      externalEndpointList = MetadataKey.networkExternalEndpointList.defaultValue,
+      customHeaders = MetadataKey.networkCustomHeaders.defaultValue;
 
   NetworkConfig copyWith({
     bool? autoEndpointSwitching,

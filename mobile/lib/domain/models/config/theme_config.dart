@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:immich_mobile/constants/colors.dart';
+import 'package:immich_mobile/domain/models/metadata_key.dart';
 
 class ThemeConfig {
   final ThemeMode mode;
@@ -8,11 +9,17 @@ class ThemeConfig {
   final bool colorfulInterface;
 
   const ThemeConfig({
-    this.mode = .system,
-    this.primaryColor = .indigo,
-    this.dynamicTheme = false,
-    this.colorfulInterface = true,
+    required this.mode,
+    required this.primaryColor,
+    required this.dynamicTheme,
+    required this.colorfulInterface,
   });
+
+  ThemeConfig.defaults()
+    : mode = MetadataKey.themeMode.defaultValue,
+      primaryColor = MetadataKey.themePrimaryColor.defaultValue,
+      dynamicTheme = MetadataKey.themeDynamic.defaultValue,
+      colorfulInterface = MetadataKey.themeColorfulInterface.defaultValue;
 
   ThemeConfig copyWith({
     ThemeMode? mode,

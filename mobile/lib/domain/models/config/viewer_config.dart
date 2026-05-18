@@ -1,3 +1,5 @@
+import 'package:immich_mobile/domain/models/metadata_key.dart';
+
 class ViewerConfig {
   final bool loopVideo;
   final bool loadOriginalVideo;
@@ -5,11 +7,17 @@ class ViewerConfig {
   final bool tapToNavigate;
 
   const ViewerConfig({
-    this.loopVideo = true,
-    this.loadOriginalVideo = false,
-    this.autoPlayVideo = true,
-    this.tapToNavigate = false,
+    required this.loopVideo,
+    required this.loadOriginalVideo,
+    required this.autoPlayVideo,
+    required this.tapToNavigate,
   });
+
+  ViewerConfig.defaults()
+    : loopVideo = MetadataKey.viewerLoopVideo.defaultValue,
+      loadOriginalVideo = MetadataKey.viewerLoadOriginalVideo.defaultValue,
+      autoPlayVideo = MetadataKey.viewerAutoPlayVideo.defaultValue,
+      tapToNavigate = MetadataKey.viewerTapToNavigate.defaultValue;
 
   ViewerConfig copyWith({bool? loopVideo, bool? loadOriginalVideo, bool? autoPlayVideo, bool? tapToNavigate}) =>
       ViewerConfig(

@@ -1,3 +1,4 @@
+import 'package:immich_mobile/domain/models/metadata_key.dart';
 import 'package:immich_mobile/domain/models/timeline.model.dart';
 
 class TimelineConfig {
@@ -5,7 +6,12 @@ class TimelineConfig {
   final GroupAssetsBy groupAssetsBy;
   final bool storageIndicator;
 
-  const TimelineConfig({this.tilesPerRow = 4, this.groupAssetsBy = GroupAssetsBy.day, this.storageIndicator = true});
+  const TimelineConfig({required this.tilesPerRow, required this.groupAssetsBy, required this.storageIndicator});
+
+  TimelineConfig.defaults()
+    : tilesPerRow = MetadataKey.timelineTilesPerRow.defaultValue,
+      groupAssetsBy = MetadataKey.timelineGroupAssetsBy.defaultValue,
+      storageIndicator = MetadataKey.timelineStorageIndicator.defaultValue;
 
   TimelineConfig copyWith({int? tilesPerRow, GroupAssetsBy? groupAssetsBy, bool? storageIndicator}) => TimelineConfig(
     tilesPerRow: tilesPerRow ?? this.tilesPerRow,

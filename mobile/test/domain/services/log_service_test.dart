@@ -39,7 +39,9 @@ void main() {
     registerFallbackValue(LogLevel.info);
 
     when(() => mockLogRepo.truncate(limit: any(named: 'limit'))).thenAnswer((_) async => {});
-    when(() => mockMetadataRepository.systemConfig).thenReturn(const SystemConfig(logLevel: LogLevel.fine));
+    when(
+      () => mockMetadataRepository.systemConfig,
+    ).thenReturn(SystemConfig(logLevel: LogLevel.fine, network: .defaults()));
     when(() => mockMetadataRepository.write<LogLevel, LogLevel>(MetadataKey.logLevel, any())).thenAnswer((_) async {});
     when(() => mockLogRepo.getAll()).thenAnswer((_) async => []);
     when(() => mockLogRepo.insert(any())).thenAnswer((_) async => true);

@@ -1,3 +1,5 @@
+import 'package:immich_mobile/domain/models/metadata_key.dart';
+
 class BackupConfig {
   final bool enabled;
   final bool useCellularForVideos;
@@ -7,13 +9,21 @@ class BackupConfig {
   final bool syncAlbums;
 
   const BackupConfig({
-    this.enabled = false,
-    this.useCellularForVideos = false,
-    this.useCellularForPhotos = false,
-    this.requireCharging = false,
-    this.triggerDelay = 30,
-    this.syncAlbums = false,
+    required this.enabled,
+    required this.useCellularForVideos,
+    required this.useCellularForPhotos,
+    required this.requireCharging,
+    required this.triggerDelay,
+    required this.syncAlbums,
   });
+
+  BackupConfig.defaults()
+    : enabled = MetadataKey.backupEnabled.defaultValue,
+      useCellularForVideos = MetadataKey.backupUseCellularForVideos.defaultValue,
+      useCellularForPhotos = MetadataKey.backupUseCellularForPhotos.defaultValue,
+      requireCharging = MetadataKey.backupRequireCharging.defaultValue,
+      triggerDelay = MetadataKey.backupTriggerDelay.defaultValue,
+      syncAlbums = MetadataKey.backupSyncAlbums.defaultValue;
 
   BackupConfig copyWith({
     bool? enabled,

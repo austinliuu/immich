@@ -6,12 +6,7 @@ import 'package:immich_mobile/extensions/string_extensions.dart';
 import 'package:immich_mobile/infrastructure/entities/metadata.entity.drift.dart';
 import 'package:immich_mobile/infrastructure/repositories/db.repository.dart';
 
-class MetadataRepository extends DriftDatabaseRepository {
-  final Drift _db;
-  final Map<MetadataKey, Object> _cache = {};
-
-  MetadataRepository._(this._db) : super(_db);
-
+abstract final class MetadataStore {
   static MetadataRepository? _instance;
 
   static MetadataRepository get instance {
@@ -22,26 +17,36 @@ class MetadataRepository extends DriftDatabaseRepository {
     return instance;
   }
 
-  AppConfig _appConfig = const .new();
-  AppConfig get appConfig => _appConfig;
-
-  SystemConfig _systemConfig = const .new();
-  SystemConfig get systemConfig => _systemConfig;
-
   static Future<MetadataRepository> ensureInitialized(Drift db) async {
     if (_instance == null) {
-      final instance = MetadataRepository._(db);
+      final instance = MetadataRepository(db);
       await instance._hydrate();
       _instance = instance;
     }
     return _instance!;
   }
 
-  static Future<void> refresh() async {
-    instance._cache.clear();
-    instance._appConfig = const .new();
-    instance._systemConfig = const .new();
-    await instance._hydrate();
+  static AppConfig get appConfig => instance.appConfig;
+  static SystemConfig get systemConfig => instance.systemConfig;
+}
+
+class MetadataRepository extends DriftDatabaseRepository {
+  final Drift _db;
+  final Map<MetadataKey, Object> _cache = {};
+
+  MetadataRepository(this._db) : super(_db);
+
+  AppConfig _appConfig = AppConfig.defaults();
+  AppConfig get appConfig => _appConfig;
+
+  SystemConfig _systemConfig = SystemConfig.defaults();
+  SystemConfig get systemConfig => _systemConfig;
+
+  Future<void> refresh() async {
+    _cache.clear();
+    _appConfig = AppConfig.defaults();
+    _systemConfig = SystemConfig.defaults();
+    await _hydrate();
   }
 
   Future<void> _hydrate() async => _hydrateCache(await _db.select(_db.metadataEntity).get());
@@ -51,6 +56,9 @@ class MetadataRepository extends DriftDatabaseRepository {
   Future<void> write<T extends Object, U extends T>(MetadataKey<T> key, U value) async {
     if (_read(key) == value) {
       return;
+    }
+    if (value == key.defaultValue) {
+      return delete(key);
     }
 
     await _db
@@ -74,7 +82,10 @@ class MetadataRepository extends DriftDatabaseRepository {
     final query = _db.select(_db.metadataEntity)..where((t) => t.key.like('${domain.prefix}.%'));
     return query.watch().map((rows) {
       _hydrateCache(rows);
-      return domain.config(this);
+      return switch (domain) {
+        .appConfig => _appConfig as T,
+        .systemConfig => _systemConfig as T,
+      };
     });
   }
 
@@ -94,84 +105,74 @@ class MetadataRepository extends DriftDatabaseRepository {
       return;
     }
     _cache[key] = value;
-    key.domain.rebuild(this);
-  }
-}
 
-extension<T extends Object> on MetadataDomain<T> {
-  T config(MetadataRepository repo) => switch (this) {
-    .appConfig => repo._appConfig as T,
-    .systemConfig => repo._systemConfig as T,
-  };
-
-  void rebuild(MetadataRepository repo) {
-    switch (this) {
+    switch (key.domain) {
       case .appConfig:
-        repo._appConfig = .new(
-          theme: .new(
-            mode: repo._read(.themeMode),
-            primaryColor: repo._read(.themePrimaryColor),
-            dynamicTheme: repo._read(.themeDynamic),
-            colorfulInterface: repo._read(.themeColorfulInterface),
-          ),
-          cleanup: .new(
-            keepFavorites: repo._read(.cleanupKeepFavorites),
-            keepMediaType: repo._read(.cleanupKeepMediaType),
-            keepAlbumIds: repo._read(.cleanupKeepAlbumIds),
-            cutoffDaysAgo: repo._read(.cleanupCutoffDaysAgo),
-            defaultsInitialized: repo._read(.cleanupDefaultsInitialized),
-          ),
-          map: .new(
-            relativeDays: repo._read(.mapRelativeDate),
-            favoritesOnly: repo._read(.mapShowFavoriteOnly),
-            includeArchived: repo._read(.mapIncludeArchived),
-            themeMode: repo._read(.mapThemeMode),
-            withPartners: repo._read(.mapWithPartners),
-          ),
-          timeline: .new(
-            tilesPerRow: repo._read(.timelineTilesPerRow),
-            groupAssetsBy: repo._read(.timelineGroupAssetsBy),
-            storageIndicator: repo._read(.timelineStorageIndicator),
-          ),
-          image: .new(preferRemote: repo._read(.imagePreferRemote), loadOriginal: repo._read(.imageLoadOriginal)),
-          viewer: .new(
-            loopVideo: repo._read(.viewerLoopVideo),
-            loadOriginalVideo: repo._read(.viewerLoadOriginalVideo),
-            autoPlayVideo: repo._read(.viewerAutoPlayVideo),
-            tapToNavigate: repo._read(.viewerTapToNavigate),
-          ),
-          slideshow: .new(
-            transition: repo._read(.slideshowTransition),
-            repeat: repo._read(.slideshowRepeat),
-            duration: repo._read(.slideshowDuration),
-            look: repo._read(.slideshowLook),
-            direction: repo._read(.slideshowDirection),
-          ),
-          album: .new(
-            sortMode: repo._read(.albumSortMode),
-            isReverse: repo._read(.albumIsReverse),
-            isGrid: repo._read(.albumIsGrid),
-          ),
-          backup: .new(
-            enabled: repo._read(.backupEnabled),
-            useCellularForVideos: repo._read(.backupUseCellularForVideos),
-            useCellularForPhotos: repo._read(.backupUseCellularForPhotos),
-            requireCharging: repo._read(.backupRequireCharging),
-            triggerDelay: repo._read(.backupTriggerDelay),
-            syncAlbums: repo._read(.backupSyncAlbums),
-          ),
-        );
+        _appConfig = _buildAppConfig();
       case .systemConfig:
-        repo._systemConfig = .new(
-          logLevel: repo._read(.logLevel),
-          network: .new(
-            autoEndpointSwitching: repo._read(.networkAutoEndpointSwitching),
-            preferredWifiName: repo._read(.networkPreferredWifiName).nullIfEmpty,
-            localEndpoint: repo._read(.networkLocalEndpoint).nullIfEmpty,
-            externalEndpointList: repo._read(.networkExternalEndpointList),
-            customHeaders: repo._read(.networkCustomHeaders),
-          ),
-        );
+        _systemConfig = _buildSystemConfig();
     }
   }
+
+  AppConfig _buildAppConfig() => .new(
+    theme: .new(
+      mode: _read(.themeMode),
+      primaryColor: _read(.themePrimaryColor),
+      dynamicTheme: _read(.themeDynamic),
+      colorfulInterface: _read(.themeColorfulInterface),
+    ),
+    cleanup: .new(
+      keepFavorites: _read(.cleanupKeepFavorites),
+      keepMediaType: _read(.cleanupKeepMediaType),
+      keepAlbumIds: _read(.cleanupKeepAlbumIds),
+      cutoffDaysAgo: _read(.cleanupCutoffDaysAgo),
+      defaultsInitialized: _read(.cleanupDefaultsInitialized),
+    ),
+    map: .new(
+      relativeDays: _read(.mapRelativeDate),
+      favoritesOnly: _read(.mapShowFavoriteOnly),
+      includeArchived: _read(.mapIncludeArchived),
+      themeMode: _read(.mapThemeMode),
+      withPartners: _read(.mapWithPartners),
+    ),
+    timeline: .new(
+      tilesPerRow: _read(.timelineTilesPerRow),
+      groupAssetsBy: _read(.timelineGroupAssetsBy),
+      storageIndicator: _read(.timelineStorageIndicator),
+    ),
+    image: .new(preferRemote: _read(.imagePreferRemote), loadOriginal: _read(.imageLoadOriginal)),
+    viewer: .new(
+      loopVideo: _read(.viewerLoopVideo),
+      loadOriginalVideo: _read(.viewerLoadOriginalVideo),
+      autoPlayVideo: _read(.viewerAutoPlayVideo),
+      tapToNavigate: _read(.viewerTapToNavigate),
+    ),
+    slideshow: .new(
+      transition: _read(.slideshowTransition),
+      repeat: _read(.slideshowRepeat),
+      duration: _read(.slideshowDuration),
+      look: _read(.slideshowLook),
+      direction: _read(.slideshowDirection),
+    ),
+    album: .new(sortMode: _read(.albumSortMode), isReverse: _read(.albumIsReverse), isGrid: _read(.albumIsGrid)),
+    backup: .new(
+      enabled: _read(.backupEnabled),
+      useCellularForVideos: _read(.backupUseCellularForVideos),
+      useCellularForPhotos: _read(.backupUseCellularForPhotos),
+      requireCharging: _read(.backupRequireCharging),
+      triggerDelay: _read(.backupTriggerDelay),
+      syncAlbums: _read(.backupSyncAlbums),
+    ),
+  );
+
+  SystemConfig _buildSystemConfig() => .new(
+    logLevel: _read(.logLevel),
+    network: .new(
+      autoEndpointSwitching: _read(.networkAutoEndpointSwitching),
+      preferredWifiName: _read(.networkPreferredWifiName).nullIfEmpty,
+      localEndpoint: _read(.networkLocalEndpoint).nullIfEmpty,
+      externalEndpointList: _read(.networkExternalEndpointList),
+      customHeaders: _read(.networkCustomHeaders),
+    ),
+  );
 }

@@ -1,4 +1,5 @@
 import 'package:immich_mobile/constants/enums.dart';
+import 'package:immich_mobile/domain/models/metadata_key.dart';
 
 class SlideshowConfig {
   final bool transition;
@@ -8,12 +9,19 @@ class SlideshowConfig {
   final SlideshowDirection direction;
 
   const SlideshowConfig({
-    this.transition = true,
-    this.repeat = true,
-    this.duration = 5,
-    this.look = SlideshowLook.contain,
-    this.direction = SlideshowDirection.forward,
+    required this.transition,
+    required this.repeat,
+    required this.duration,
+    required this.look,
+    required this.direction,
   });
+
+  SlideshowConfig.defaults()
+    : transition = MetadataKey.slideshowTransition.defaultValue,
+      repeat = MetadataKey.slideshowRepeat.defaultValue,
+      duration = MetadataKey.slideshowDuration.defaultValue,
+      look = MetadataKey.slideshowLook.defaultValue,
+      direction = MetadataKey.slideshowDirection.defaultValue;
 
   SlideshowConfig copyWith({
     bool? transition,

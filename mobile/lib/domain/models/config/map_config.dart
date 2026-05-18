@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:immich_mobile/domain/models/metadata_key.dart';
 
 class MapConfig {
   final int relativeDays;
@@ -8,12 +9,19 @@ class MapConfig {
   final bool withPartners;
 
   const MapConfig({
-    this.relativeDays = 0,
-    this.favoritesOnly = false,
-    this.includeArchived = false,
-    this.themeMode = ThemeMode.system,
-    this.withPartners = false,
+    required this.relativeDays,
+    required this.favoritesOnly,
+    required this.includeArchived,
+    required this.themeMode,
+    required this.withPartners,
   });
+
+  MapConfig.defaults()
+    : relativeDays = MetadataKey.mapRelativeDate.defaultValue,
+      favoritesOnly = MetadataKey.mapShowFavoriteOnly.defaultValue,
+      includeArchived = MetadataKey.mapIncludeArchived.defaultValue,
+      themeMode = MetadataKey.mapThemeMode.defaultValue,
+      withPartners = MetadataKey.mapWithPartners.defaultValue;
 
   MapConfig copyWith({
     int? relativeDays,
