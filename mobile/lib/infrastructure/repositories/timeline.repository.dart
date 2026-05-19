@@ -4,12 +4,14 @@ import 'package:drift/drift.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:immich_mobile/constants/constants.dart';
 import 'package:immich_mobile/domain/models/album/album.model.dart';
+import 'package:immich_mobile/domain/models/album/local_album.model.dart';
 import 'package:immich_mobile/domain/models/asset/base_asset.model.dart';
 import 'package:immich_mobile/domain/models/timeline.model.dart';
 import 'package:immich_mobile/domain/services/timeline.service.dart';
 import 'package:immich_mobile/infrastructure/entities/local_asset.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/remote_asset.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/remote_asset.entity.drift.dart';
+import 'package:immich_mobile/infrastructure/entities/trash_sync.entity.dart';
 import 'package:immich_mobile/infrastructure/repositories/db.repository.dart';
 import 'package:immich_mobile/infrastructure/repositories/map.repository.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
@@ -346,6 +348,12 @@ class DriftTimelineRepository extends DriftDatabaseRepository {
     joinLocal: true,
   );
 
+  TimelineQuery toTrashSyncReview(GroupAssetsBy groupBy) => (
+    bucketSource: () => _watchTrashSyncBucket(groupBy: groupBy),
+    assetSource: (offset, count) => _getToTrashSyncBucketAssets(offset: offset, count: count),
+    origin: TimelineOrigin.syncTrash,
+  );
+
   TimelineQuery archived(String userId, GroupAssetsBy groupBy) => _remoteQueryBuilder(
     filter: (row) =>
         row.deletedAt.isNull() & row.ownerId.equals(userId) & row.visibility.equalsValue(AssetVisibility.archive),
@@ -677,6 +685,58 @@ class DriftTimelineRepository extends DriftDatabaseRepository {
 
       return query.map((row) => row.toDto()).get();
     }
+  }
+
+  Stream<List<Bucket>> _watchTrashSyncBucket({GroupAssetsBy groupBy = GroupAssetsBy.day}) {
+    if (groupBy == GroupAssetsBy.none) {
+      throw UnsupportedError("GroupAssetsBy.none is not supported for watchTrashSyncBucket");
+    }
+
+    final assetCountExp = _db.localAssetEntity.id.count();
+    final dateExp = _db.localAssetEntity.createdAt.dateFmt(groupBy, toLocal: true);
+
+    final query = _db.localAssetEntity.selectOnly()
+      ..addColumns([assetCountExp, dateExp])
+      ..where(_db.localAssetEntity.id.isInQuery(_pendingTrashSyncIdsSubquery()))
+      ..groupBy([dateExp])
+      ..orderBy([OrderingTerm.desc(dateExp)]);
+
+    return query.map((row) {
+      final timeline = row.read(dateExp)!.truncateDate(groupBy);
+      final assetCount = row.read(assetCountExp)!;
+      return TimeBucket(date: timeline, assetCount: assetCount);
+    }).watch();
+  }
+
+  Future<List<BaseAsset>> _getToTrashSyncBucketAssets({required int offset, required int count}) {
+    final query = _db.localAssetEntity.select()
+      ..where((row) => row.id.isInQuery(_pendingTrashSyncIdsSubquery()))
+      ..orderBy([(row) => OrderingTerm.desc(row.createdAt), (row) => OrderingTerm.asc(row.id)])
+      ..limit(count, offset: offset);
+
+    return query.map((row) => row.toDto()).get();
+  }
+
+  JoinedSelectStatement<HasResultSet, dynamic> _pendingTrashSyncIdsSubquery() {
+    final selectedAlbumAssets =
+        _db.localAlbumAssetEntity.selectOnly().join([
+            innerJoin(
+              _db.localAlbumEntity,
+              _db.localAlbumAssetEntity.albumId.equalsExp(_db.localAlbumEntity.id),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([_db.localAlbumAssetEntity.assetId])
+          ..where(
+            _db.localAlbumAssetEntity.assetId.equalsExp(_db.trashSyncEntity.id) &
+                _db.localAlbumEntity.backupSelection.equalsValue(BackupSelection.selected),
+          );
+
+    return _db.trashSyncEntity.selectOnly()
+      ..addColumns([_db.trashSyncEntity.id])
+      ..where(
+        _db.trashSyncEntity.decision.equalsValue(TrashStateDecision.pendingReview) & existsQuery(selectedAlbumAssets),
+      );
   }
 }
 

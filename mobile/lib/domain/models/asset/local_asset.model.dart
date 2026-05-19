@@ -31,7 +31,7 @@ class LocalAsset extends BaseAsset {
     this.adjustmentTime,
     this.latitude,
     this.longitude,
-    required super.isEdited,
+    super.isEdited = false,
   }) : remoteAssetId = remoteId;
 
   @override

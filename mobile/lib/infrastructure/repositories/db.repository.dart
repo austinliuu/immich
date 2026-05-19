@@ -24,6 +24,7 @@ import 'package:immich_mobile/infrastructure/entities/remote_asset.entity.drift.
 import 'package:immich_mobile/infrastructure/entities/remote_asset_cloud_id.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/stack.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/store.entity.dart';
+import 'package:immich_mobile/infrastructure/entities/trash_sync.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/trashed_local_asset.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/trashed_local_asset.entity.drift.dart';
 import 'package:immich_mobile/infrastructure/entities/user.entity.dart';
@@ -56,6 +57,7 @@ import 'package:logging/logging.dart';
     TrashedLocalAssetEntity,
     AssetEditEntity,
     MetadataEntity,
+    TrashSyncEntity,
   ],
   include: {'package:immich_mobile/infrastructure/entities/merged_asset.drift'},
 )
@@ -98,7 +100,7 @@ class Drift extends $Drift {
   }
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -275,6 +277,16 @@ class Drift extends $Drift {
           },
           from25To26: (m, v26) async {
             await m.addColumn(v26.remoteAssetEntity, v26.remoteAssetEntity.uploadedAt);
+          },
+          from26To27: (m, v27) async {
+            await m.create(v27.trashSyncEntity);
+            await m.createIndex(v27.idxTrashSyncDecision);
+            await m.createIndex(v27.idxTrashSyncChecksum);
+
+            await m.addColumn(v27.trashedLocalAssetEntity, v27.trashedLocalAssetEntity.iCloudId);
+            await m.addColumn(v27.trashedLocalAssetEntity, v27.trashedLocalAssetEntity.adjustmentTime);
+            await m.addColumn(v27.trashedLocalAssetEntity, v27.trashedLocalAssetEntity.latitude);
+            await m.addColumn(v27.trashedLocalAssetEntity, v27.trashedLocalAssetEntity.longitude);
           },
         ),
       );

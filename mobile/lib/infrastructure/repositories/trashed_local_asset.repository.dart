@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:immich_mobile/constants/constants.dart';
 import 'package:immich_mobile/domain/models/album/local_album.model.dart';
 import 'package:immich_mobile/domain/models/asset/base_asset.model.dart';
-import 'package:immich_mobile/infrastructure/entities/local_asset.entity.dart';
+import 'package:immich_mobile/domain/models/asset/remote_deleted_local_asset.model.dart';
 import 'package:immich_mobile/infrastructure/entities/local_asset.entity.drift.dart';
 import 'package:immich_mobile/infrastructure/entities/trashed_local_asset.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/trashed_local_asset.entity.drift.dart';
@@ -57,9 +57,6 @@ class DriftTrashedLocalAssetRepository extends DriftDatabaseRepository {
     return rows.map((result) => result.readTable(_db.trashedLocalAssetEntity).toLocalAsset());
   }
 
-  /// Applies resulted snapshot of trashed assets:
-  /// - upserts incoming rows
-  /// - deletes rows that are not present in the snapshot
   Future<void> processTrashSnapshot(Iterable<TrashedAsset> trashedAssets) async {
     if (trashedAssets.isEmpty) {
       await _db.delete(_db.trashedLocalAssetEntity).go();
@@ -86,7 +83,7 @@ class DriftTrashedLocalAssetRepository extends DriftDatabaseRepository {
             isFavorite: Value(item.asset.isFavorite),
             orientation: Value(item.asset.orientation),
             playbackStyle: Value(item.asset.playbackStyle),
-            source: TrashOrigin.localSync,
+            source: .localSync,
           );
 
           batch.insert<$TrashedLocalAssetEntityTable, TrashedLocalAssetEntityData>(
@@ -104,9 +101,11 @@ class DriftTrashedLocalAssetRepository extends DriftDatabaseRepository {
           _db.trashedLocalAssetEntity,
         )..addColumns([_db.trashedLocalAssetEntity.id])).map((r) => r.read(_db.trashedLocalAssetEntity.id)!).get();
         final idToDelete = existingIds.where((id) => !assetIds.contains(id));
-        for (final slice in idToDelete.slices(kDriftMaxChunk)) {
-          await (_db.delete(_db.trashedLocalAssetEntity)..where((t) => t.id.isIn(slice))).go();
-        }
+        await _db.batch((batch) {
+          for (final slice in idToDelete.slices(kDriftMaxChunk)) {
+            (_db.delete(_db.trashedLocalAssetEntity)..where((t) => t.id.isIn(slice))).go();
+          }
+        });
       }
     });
   }
@@ -125,7 +124,7 @@ class DriftTrashedLocalAssetRepository extends DriftDatabaseRepository {
         .map((row) => row.read<int>(_db.trashedLocalAssetEntity.id.count()) ?? 0);
   }
 
-  Future<void> trashLocalAsset(Map<String, List<LocalAsset>> assetsByAlbums) async {
+  Future<void> trashLocalAssets(Map<String, Iterable<RemoteDeletedLocalAsset>> assetsByAlbums) async {
     if (assetsByAlbums.isEmpty) {
       return Future.value();
     }
@@ -134,7 +133,8 @@ class DriftTrashedLocalAssetRepository extends DriftDatabaseRepository {
     final idToDelete = <String>{};
 
     for (final entry in assetsByAlbums.entries) {
-      for (final asset in entry.value) {
+      for (final record in entry.value) {
+        final asset = record.asset;
         idToDelete.add(asset.id);
         companions.add(
           TrashedLocalAssetEntityCompanion(
@@ -262,32 +262,6 @@ class DriftTrashedLocalAssetRepository extends DriftDatabaseRepository {
         await (_db.delete(_db.localAssetEntity)..where((t) => t.id.isIn(slice))).go();
       }
     });
-  }
-
-  Future<Map<String, List<LocalAsset>>> getToTrash() async {
-    final result = <String, List<LocalAsset>>{};
-
-    final rows =
-        await (_db.select(_db.localAlbumAssetEntity).join([
-              innerJoin(_db.localAlbumEntity, _db.localAlbumAssetEntity.albumId.equalsExp(_db.localAlbumEntity.id)),
-              innerJoin(_db.localAssetEntity, _db.localAlbumAssetEntity.assetId.equalsExp(_db.localAssetEntity.id)),
-              leftOuterJoin(
-                _db.remoteAssetEntity,
-                _db.remoteAssetEntity.checksum.equalsExp(_db.localAssetEntity.checksum),
-              ),
-            ])..where(
-              _db.localAlbumEntity.backupSelection.equalsValue(BackupSelection.selected) &
-                  _db.remoteAssetEntity.deletedAt.isNotNull(),
-            ))
-            .get();
-
-    for (final row in rows) {
-      final albumId = row.readTable(_db.localAlbumAssetEntity).albumId;
-      final asset = row.readTable(_db.localAssetEntity).toDto();
-      (result[albumId] ??= <LocalAsset>[]).add(asset);
-    }
-
-    return result;
   }
 
   //attempt to reuse existing checksums
