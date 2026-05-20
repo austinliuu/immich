@@ -385,9 +385,6 @@ class ActionNotifier extends Notifier<void> {
     final localAssets = candidates.localAssetsToUpload;
     final albumNotifier = ref.read(remoteAlbumProvider.notifier);
 
-    // Clear multi-select so the timeline tiles can render upload progress overlays.
-    ref.read(multiSelectProvider.notifier).reset();
-
     int addedRemote = 0;
     if (remoteIds.isNotEmpty) {
       try {
@@ -398,6 +395,12 @@ class ActionNotifier extends Notifier<void> {
       }
     }
 
+    // Keep the selection available for retry if the remote add fails. Once the
+    // album mutation succeeds, clear timeline selection so upload overlays can render.
+    if (source == ActionSource.timeline) {
+      ref.read(multiSelectProvider.notifier).reset();
+    }
+
     if (localAssets.isEmpty) {
       return ActionResult(count: addedRemote, success: true);
     }
@@ -406,10 +409,7 @@ class ActionNotifier extends Notifier<void> {
       source,
       assets: localAssets,
       onAssetUploaded: (asset, remoteId) async {
-        final added = await albumNotifier.linkUploadedAssetToAlbum(album.id, asset, remoteId);
-        if (added == 0) {
-          throw StateError('Uploaded asset was not added to album ${album.id}');
-        }
+        await albumNotifier.linkUploadedAssetToAlbum(album.id, asset, remoteId);
       },
     );
 
