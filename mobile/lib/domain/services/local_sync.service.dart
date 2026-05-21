@@ -28,18 +28,13 @@ class LocalSyncService {
   final Logger _log = Logger("DeviceSyncService");
 
   LocalSyncService({
-    required DriftLocalAlbumRepository localAlbumRepository,
-    required DriftLocalAssetRepository localAssetRepository,
-    required DriftTrashedLocalAssetRepository trashedLocalAssetRepository,
-    required LocalFilesManagerRepository localFilesManager,
-    required StorageRepository storageRepository,
-    required NativeSyncApi nativeSyncApi,
-  }) : _localAlbumRepository = localAlbumRepository,
-       _localAssetRepository = localAssetRepository,
-       _trashedLocalAssetRepository = trashedLocalAssetRepository,
-       _localFilesManager = localFilesManager,
-       _storageRepository = storageRepository,
-       _nativeSyncApi = nativeSyncApi;
+    required this._localAlbumRepository,
+    required this._localAssetRepository,
+    required this._trashedLocalAssetRepository,
+    required this._localFilesManager,
+    required this._storageRepository,
+    required this._nativeSyncApi,
+  });
 
   Future<void> sync({bool full = false}) async {
     final Stopwatch stopwatch = Stopwatch()..start();

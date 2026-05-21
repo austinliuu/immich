@@ -41,24 +41,16 @@ class SyncStreamService {
   final bool Function()? _cancelChecker;
 
   SyncStreamService({
-    required SyncApiRepository syncApiRepository,
-    required SyncStreamRepository syncStreamRepository,
-    required DriftLocalAssetRepository localAssetRepository,
-    required DriftTrashedLocalAssetRepository trashedLocalAssetRepository,
-    required LocalFilesManagerRepository localFilesManager,
-    required StorageRepository storageRepository,
-    required SyncMigrationRepository syncMigrationRepository,
-    required ApiService api,
-    bool Function()? cancelChecker,
-  }) : _syncApiRepository = syncApiRepository,
-       _syncStreamRepository = syncStreamRepository,
-       _localAssetRepository = localAssetRepository,
-       _trashedLocalAssetRepository = trashedLocalAssetRepository,
-       _localFilesManager = localFilesManager,
-       _storageRepository = storageRepository,
-       _syncMigrationRepository = syncMigrationRepository,
-       _api = api,
-       _cancelChecker = cancelChecker;
+    required this._syncApiRepository,
+    required this._syncStreamRepository,
+    required this._localAssetRepository,
+    required this._trashedLocalAssetRepository,
+    required this._localFilesManager,
+    required this._storageRepository,
+    required this._syncMigrationRepository,
+    required this._api,
+    this._cancelChecker,
+  });
 
   bool get isCancelled => _cancelChecker?.call() ?? false;
 
