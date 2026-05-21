@@ -76,6 +76,12 @@ export const isAssetChecksumConstraint = (error: unknown) => {
   return (error as PostgresError)?.constraint_name === 'UQ_assets_owner_checksum';
 };
 
+export const STACK_PRIMARY_CONSTRAINT = 'stack_primaryAssetId_uq';
+
+export const isStackPrimaryConstraint = (error: unknown) => {
+  return (error as PostgresError)?.constraint_name === STACK_PRIMARY_CONSTRAINT;
+};
+
 export function withDefaultVisibility<O>(qb: SelectQueryBuilder<DB, 'asset', O>) {
   return qb.where('asset.visibility', 'in', [sql.lit(AssetVisibility.Archive), sql.lit(AssetVisibility.Timeline)]);
 }

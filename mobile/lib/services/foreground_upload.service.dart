@@ -6,18 +6,24 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/domain/models/asset/asset_metadata.model.dart';
 import 'package:immich_mobile/domain/models/asset/base_asset.model.dart';
 import 'package:immich_mobile/domain/models/store.model.dart';
+import 'package:immich_mobile/domain/services/edit_revert.service.dart';
 import 'package:immich_mobile/entities/store.entity.dart';
 import 'package:immich_mobile/extensions/network_capability_extensions.dart';
 import 'package:immich_mobile/extensions/platform_extensions.dart';
 import 'package:immich_mobile/extensions/translate_extensions.dart';
 import 'package:immich_mobile/infrastructure/repositories/backup.repository.dart';
+import 'package:immich_mobile/infrastructure/repositories/local_asset.repository.dart';
 import 'package:immich_mobile/infrastructure/repositories/metadata.repository.dart';
 import 'package:immich_mobile/infrastructure/repositories/storage.repository.dart';
 import 'package:immich_mobile/platform/connectivity_api.g.dart';
+import 'package:immich_mobile/platform/native_sync_api.g.dart';
+import 'package:immich_mobile/providers/infrastructure/asset.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/platform.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/storage.provider.dart';
+import 'package:immich_mobile/providers/infrastructure/sync.provider.dart';
 import 'package:immich_mobile/repositories/asset_media.repository.dart';
 import 'package:immich_mobile/repositories/upload.repository.dart';
+import 'package:immich_mobile/services/edit_pair.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_manager/photo_manager.dart' show PMProgressHandler;
@@ -39,6 +45,9 @@ final foregroundUploadServiceProvider = Provider((ref) {
     ref.watch(backupRepositoryProvider),
     ref.watch(connectivityApiProvider),
     ref.watch(assetMediaRepositoryProvider),
+    ref.watch(nativeSyncApiProvider),
+    ref.watch(localAssetRepository),
+    ref.watch(editRevertServiceProvider),
   );
 });
 
@@ -54,6 +63,9 @@ class ForegroundUploadService {
     this._backupRepository,
     this._connectivityApi,
     this._assetMediaRepository,
+    this._nativeSyncApi,
+    this._localAssetRepository,
+    this._editRevertService,
   );
 
   final UploadRepository _uploadRepository;
@@ -61,6 +73,9 @@ class ForegroundUploadService {
   final DriftBackupRepository _backupRepository;
   final ConnectivityApi _connectivityApi;
   final AssetMediaRepository _assetMediaRepository;
+  final NativeSyncApi _nativeSyncApi;
+  final DriftLocalAssetRepository _localAssetRepository;
+  final EditRevertService _editRevertService;
   final Logger _logger = Logger('ForegroundUploadService');
 
   bool shouldAbortUpload = false;
@@ -250,6 +265,12 @@ class ForegroundUploadService {
         return;
       }
 
+      // A reverted iOS edit flips the stack back to the original and skips the upload.
+      if (CurrentPlatform.isIOS && asset.priorRemoteId != null && await _editRevertService.tryHandleRevert(asset)) {
+        callbacks.onSuccess?.call(asset.localId!, asset.priorRemoteId!);
+        return;
+      }
+
       final isAvailableLocally = await _storageRepository.isAssetAvailableLocally(asset.id);
 
       if (!isAvailableLocally && CurrentPlatform.isIOS) {
@@ -371,6 +392,13 @@ class ForegroundUploadService {
         ]);
       }
 
+      final stackParentId = entity.isLivePhoto
+          ? null
+          : await _maybeUploadBaseResource(asset, Map.of(fields), cancelToken);
+      if (stackParentId != null) {
+        fields['stackParentId'] = stackParentId;
+      }
+
       final onProgress = callbacks.onProgress;
       final result = await _uploadRepository.uploadFile(
         file: file,
@@ -384,6 +412,13 @@ class ForegroundUploadService {
       );
 
       if (result.isSuccess && result.remoteAssetId != null) {
+        unawaited(
+          _localAssetRepository.markSynced(
+            asset.localId!,
+            priorRemoteId: result.remoteAssetId!,
+            syncedChecksum: asset.checksum ?? '',
+          ),
+        );
         callbacks.onSuccess?.call(asset.localId!, result.remoteAssetId!);
       } else if (result.isCancelled) {
         _logger.warning(() => "Backup was cancelled by the user");
@@ -412,6 +447,43 @@ class ForegroundUploadService {
           _logger.severe(() => "ERROR deleting file: ${error.toString()}", stackTrace);
         }
       }
+    }
+  }
+
+  /// For an edited iOS photo, uploads the original camera bytes and returns its
+  /// remote id to use as the edit's stackParentId. Returns null for non-edits.
+  Future<String?> _maybeUploadBaseResource(
+    LocalAsset asset,
+    Map<String, String> baseFields,
+    Completer<void>? cancelToken,
+  ) async {
+    if (!CurrentPlatform.isIOS) {
+      return null;
+    }
+
+    final plan = await resolveEditPair(_nativeSyncApi, asset, log: _logger);
+    switch (plan) {
+      case NoEditPair():
+        return null;
+      case AbsorbIntoPrior(:final parentId):
+        return parentId;
+      case UploadBaseFirst(:final base):
+        final baseFile = File(base.path);
+        try {
+          final baseName = p.setExtension(asset.name, p.extension(base.path));
+          final result = await _uploadRepository.uploadFile(
+            file: baseFile,
+            originalFileName: baseName,
+            fields: baseFields,
+            cancelToken: cancelToken,
+            logContext: 'baseResource[${asset.localId}]',
+          );
+          return result.isSuccess ? result.remoteAssetId : null;
+        } finally {
+          try {
+            await baseFile.delete();
+          } catch (_) {}
+        }
     }
   }
 

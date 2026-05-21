@@ -105,6 +105,7 @@ class WebsocketNotifier extends StateNotifier<WebsocketState> {
         socket.on('AssetEditReadyV2', _handleSyncAssetEditReadyV2);
         socket.on('on_config_update', _handleOnConfigUpdate);
         socket.on('on_new_release', _handleReleaseUpdates);
+        socket.on('on_asset_stack_update', _handleAssetStackUpdate);
       } catch (e) {
         dPrint(() => "[WEBSOCKET] Catch Websocket Error - ${e.toString()}");
       }
@@ -186,6 +187,13 @@ class WebsocketNotifier extends StateNotifier<WebsocketState> {
 
   void _handleSyncAssetEditReadyV2(dynamic data) {
     unawaited(_ref.read(backgroundSyncProvider).syncWebsocketEditV2(data));
+  }
+
+  // Server stacked/restacked assets (e.g. an edit stacked onto its original).
+  // Pull a fresh remote sync so the stack_entity lands and the timeline shows
+  // the stacked primary instead of briefly hiding the asset.
+  void _handleAssetStackUpdate(dynamic _) {
+    unawaited(_ref.read(backgroundSyncProvider).runFreshRemoteSync());
   }
 
   void _processBatchedAssetUploadReadyV1() {
